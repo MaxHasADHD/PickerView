@@ -45,7 +45,8 @@ class ExamplePickerViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
+        automaticallyAdjustsScrollViewInsets = false
         configureNavigationBar()
         configureExamplePicker()
     }
@@ -74,17 +75,18 @@ class ExamplePickerViewController: UIViewController {
             examplePicker.selectionStyle = selectionStyle
             
             if let currentSelected = currentSelectedValue, let indexOfCurrentSelectedValue = numbers.index(of: currentSelected) {
-                examplePicker.currentSelectedRow = indexOfCurrentSelectedValue
+                examplePicker.currentSelectedItem = indexOfCurrentSelectedValue
             }
         case let .names(scrollingStyleRaw, selectionStyleRaw):
             scrollingStyle = PickerView.ScrollingStyle(rawValue: scrollingStyleRaw)!
             selectionStyle = PickerView.SelectionStyle(rawValue: selectionStyleRaw)!
             
             examplePicker.scrollingStyle = scrollingStyle
+            examplePicker.scrollingDirection = .horizontal
             examplePicker.selectionStyle = selectionStyle
             
             if let currentSelected = currentSelectedValue, let indexOfCurrentSelectedValue = osxNames.index(of: currentSelected) {
-                examplePicker.currentSelectedRow = indexOfCurrentSelectedValue
+                examplePicker.currentSelectedItem = indexOfCurrentSelectedValue
             }
         }
         
@@ -112,7 +114,7 @@ extension ExamplePickerViewController: PickerViewDataSource {
     
     // MARK: - PickerViewDataSource
     
-    func pickerViewNumberOfRows(_ pickerView: PickerView) -> Int {
+    func pickerViewNumberOfItems(_ pickerView: PickerView) -> Int {
         switch presentationType {
         case .numbers(_, _):
             return numbers.count
@@ -121,7 +123,7 @@ extension ExamplePickerViewController: PickerViewDataSource {
         }
     }
     
-    func pickerView(_ pickerView: PickerView, titleForRow row: Int, index: Int) -> String {
+    func pickerView(_ pickerView: PickerView, titleForItem item: Int, index: Int) -> String {
         switch presentationType {
         case .numbers(_, _):
             return numbers[index]
@@ -136,11 +138,16 @@ extension ExamplePickerViewController: PickerViewDelegate {
     
     // MARK: - PickerViewDelegate
     
-    func pickerViewHeightForRows(_ pickerView: PickerView) -> CGFloat {
-        return 50.0
+    func pickerViewSpanForItems(_ pickerView: PickerView) -> CGFloat {
+        switch presentationType {
+        case .numbers(_, _):
+            return 50.0
+        case .names(_,_):
+            return 150.0
+        }
     }
     
-    func pickerView(_ pickerView: PickerView, didSelectRow row: Int, index: Int) {
+    func pickerView(_ pickerView: PickerView, didSelectItem item: Int, index: Int) {
         switch presentationType {
         case .numbers(_, _):
             currentSelectedValue = numbers[index]
@@ -148,7 +155,7 @@ extension ExamplePickerViewController: PickerViewDelegate {
             currentSelectedValue = osxNames[index]
         }
 
-        print(currentSelectedValue)
+        print(currentSelectedValue ?? "nil value")
     }
     
     func pickerView(_ pickerView: PickerView, styleForLabel label: UILabel, highlighted: Bool) {
@@ -174,7 +181,7 @@ extension ExamplePickerViewController: PickerViewDelegate {
         }
     }
     
-    func pickerView(_ pickerView: PickerView, viewForRow row: Int, index: Int, highlighted: Bool, reusingView view: UIView?) -> UIView? {
+    func pickerView(_ pickerView: PickerView, viewForItem item: Int, index: Int, highlighted: Bool, reusingView view: UIView?) -> UIView? {
         
         if (itemsType != .customView) {
             return nil
