@@ -51,7 +51,28 @@ open class PickerView: UIView {
             return titleLabel
         }()
         
-        var customView: UIView?
+        var customView: UIView? {
+            willSet {
+                if customView != newValue {
+                    customView?.removeFromSuperview()
+                }
+            }
+            didSet {
+                if let newCustomView = customView {
+                    contentView.addSubview(newCustomView)
+
+                    newCustomView.translatesAutoresizingMaskIntoConstraints = false
+                    for format in [ "H:|[customView]|", "V:|[customView]|" ] {
+                        contentView.addConstraints(NSLayoutConstraint.constraints(
+                            withVisualFormat: format,
+                            options: [],
+                            metrics: nil,
+                            views: ["customView" : newCustomView]
+                        ))
+                    }
+                }
+            }
+        }
     }
     
     /**
@@ -605,9 +626,7 @@ extension PickerView: UICollectionViewDataSource {
         pickerViewCell.backgroundColor = pickerCellBackgroundColor ?? UIColor.white
 
         if let customView = view {
-            pickerViewCell.customView?.removeFromSuperview()
             pickerViewCell.customView = customView
-            pickerViewCell.contentView.addSubview(customView)
         } else {
             let size = CGSize(span: itemSpan, lateralSpan: itemLateralSpan, direction: scrollingDirection)
             pickerViewCell.titleLabel.frame = CGRect(origin: .zero, size: size)
