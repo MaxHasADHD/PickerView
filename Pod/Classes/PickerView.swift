@@ -37,6 +37,9 @@ import UIKit
     @objc optional func pickerView(_ pickerView: PickerView, didTapItem item: Int, index: Int)
     @objc optional func pickerView(_ pickerView: PickerView, styleForLabel label: UILabel, highlighted: Bool)
     @objc optional func pickerView(_ pickerView: PickerView, viewForItem item: Int, index: Int, highlighted: Bool, reusingView view: UIView?) -> UIView?
+
+    @objc optional func pickerViewWillBeginMoving(_ pickerView: PickerView)
+    @objc optional func pickerViewDidEndMoving(_ pickerView: PickerView)
 }
 
 open class PickerView: UIView {
@@ -210,9 +213,21 @@ open class PickerView: UIView {
     
     fileprivate var firstTimeOrientationChanged = true
     fileprivate var orientationChanged = false
-    fileprivate var isScrolling = false
-    fileprivate var setupHasBeenDone = false
+
+    fileprivate var isScrolling = false {
+        didSet {
+            trackMovementChanges()
+        }
+    }
+
+    fileprivate var isAnimating = false {
+        didSet {
+            trackMovementChanges()
+        }
+    }
     
+    fileprivate var setupHasBeenDone = false
+
     open var scrollingStyle = ScrollingStyle.default {
         didSet {
             switch scrollingStyle {
@@ -517,6 +532,11 @@ open class PickerView: UIView {
         case .vertical:
             offsetPoint.y = offset
         }
+
+        if animated {
+            isAnimating = true
+        }
+
         collectionView.setContentOffset(offsetPoint, animated: animated)
     }
 
@@ -598,7 +618,22 @@ open class PickerView: UIView {
 
         setContentOffset(CGFloat(finalItem) * itemSpan - endCapSpan, animated: animated)
     }
-    
+
+    // MARK: Moving
+
+    private var isMoving = false
+
+    private func trackMovementChanges() {
+        let moving = isAnimating || isScrolling
+        if moving != isMoving {
+            isMoving = moving
+            if isMoving {
+                delegate?.pickerViewWillBeginMoving?(self)
+            } else {
+                delegate?.pickerViewDidEndMoving?(self)
+            }
+        }
+    }
 }
 
 extension PickerView: UICollectionViewDataSource {
@@ -744,5 +779,8 @@ extension PickerView: UIScrollViewDelegate {
             delegate?.pickerView?(self, styleForLabel: cellToHighlight.titleLabel, highlighted: true)
         }
     }
-    
+
+    public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        isAnimating = false
+    }
 }
