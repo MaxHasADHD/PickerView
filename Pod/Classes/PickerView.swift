@@ -152,13 +152,6 @@ open class PickerView: UIView {
         }
     }
 
-    override open var backgroundColor: UIColor? {
-        didSet {
-            self.collectionView.backgroundColor = self.backgroundColor
-            self.pickerCellBackgroundColor = self.backgroundColor
-        }
-    }
-    
     fileprivate let pickerViewCellIdentifier = "pickerViewCell"
     
     open weak var dataSource: PickerViewDataSource?
@@ -623,7 +616,7 @@ extension PickerView: UICollectionViewDataSource {
 
         let view = delegate?.pickerView?(self, viewForItem: (indexPath as NSIndexPath).item, index: indexForItem((indexPath as NSIndexPath).item), highlighted: (indexPath as NSIndexPath).item == indexOfSelectedItem, reusingView: pickerViewCell.customView)
 
-        pickerViewCell.backgroundColor = pickerCellBackgroundColor ?? UIColor.white
+        pickerViewCell.backgroundColor = pickerCellBackgroundColor ?? UIColor.clear
 
         if let customView = view {
             pickerViewCell.customView = customView
