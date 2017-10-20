@@ -419,7 +419,6 @@ open class PickerView: UIView {
     }
 
     fileprivate func updateInsets() {
-        let inset = endCapSpan
         if scrollingDirection == .horizontal {
             collectionView.contentInset = UIEdgeInsets(top: 0, left: endCapSpan, bottom: 0, right: endCapSpan)
         } else {
@@ -476,7 +475,7 @@ open class PickerView: UIView {
         }
     }
 
-    func adjustCurrentSelectedAfterOrientationChanges() {
+    @objc func adjustCurrentSelectedAfterOrientationChanges() {
         setNeedsLayout()
         layoutIfNeeded()
         
@@ -649,7 +648,7 @@ extension PickerView: UICollectionViewDataSource {
 
         let pickerViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: pickerViewCellIdentifier, for: indexPath) as! SimplePickerCollectionViewCell
 
-        let view = delegate?.pickerView?(self, viewForItem: (indexPath as NSIndexPath).item, index: indexForItem((indexPath as NSIndexPath).item), highlighted: (indexPath as NSIndexPath).item == indexOfSelectedItem, reusingView: pickerViewCell.customView)
+        let view = delegate?.pickerView?(self, viewForItem: indexPath.item, index: indexForItem(indexPath.item), highlighted: indexPath.item == indexOfSelectedItem, reusingView: pickerViewCell.customView)
 
         pickerViewCell.backgroundColor = pickerCellBackgroundColor ?? UIColor.clear
 
@@ -661,9 +660,9 @@ extension PickerView: UICollectionViewDataSource {
 
             pickerViewCell.contentView.addSubview(pickerViewCell.titleLabel)
             pickerViewCell.titleLabel.backgroundColor = UIColor.clear
-            pickerViewCell.titleLabel.text = dataSource?.pickerView(self, titleForItem: (indexPath as NSIndexPath).item, index: indexForItem((indexPath as NSIndexPath).item))
+            pickerViewCell.titleLabel.text = dataSource?.pickerView(self, titleForItem: indexPath.item, index: indexForItem(indexPath.item))
 
-            delegate?.pickerView?(self, styleForLabel: pickerViewCell.titleLabel, highlighted: (indexPath as NSIndexPath).item == indexOfSelectedItem)
+            delegate?.pickerView?(self, styleForLabel: pickerViewCell.titleLabel, highlighted: indexPath.item == indexOfSelectedItem)
         }
 
         return pickerViewCell
@@ -714,7 +713,7 @@ extension PickerView: UICollectionViewDelegate {
     // MARK: UITableViewDelegate
 
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        selectTappedItem((indexPath as NSIndexPath).item)
+        selectTappedItem(indexPath.item)
     }
 }
 
@@ -767,15 +766,15 @@ extension PickerView: UIScrollViewDelegate {
         // Avoid to have two highlighted rows at the same time
         let visibleItems = collectionView.indexPathsForVisibleItems
         for indexPath in visibleItems {
-            if let cellToUnhighlight = collectionView.cellForItem(at: indexPath) as? SimplePickerCollectionViewCell , (indexPath as NSIndexPath).item != roundedItem {
-                delegate?.pickerView?(self, viewForItem: (indexPath as NSIndexPath).item, index: indexForItem((indexPath as NSIndexPath).item), highlighted: false, reusingView: cellToUnhighlight.customView)
+            if let cellToUnhighlight = collectionView.cellForItem(at: indexPath) as? SimplePickerCollectionViewCell , indexPath.item != roundedItem {
+                _ = delegate?.pickerView?(self, viewForItem: indexPath.item, index: indexForItem(indexPath.item), highlighted: false, reusingView: cellToUnhighlight.customView)
                 delegate?.pickerView?(self, styleForLabel: cellToUnhighlight.titleLabel, highlighted: false)
             }
         }
 
         // Highlight the current selected cell during scroll
         if let cellToHighlight = collectionView.cellForItem(at: IndexPath(item: roundedItem, section: 0)) as? SimplePickerCollectionViewCell {
-            delegate?.pickerView?(self, viewForItem: roundedItem, index: indexForItem(roundedItem), highlighted: true, reusingView: cellToHighlight.customView)
+            _ = delegate?.pickerView?(self, viewForItem: roundedItem, index: indexForItem(roundedItem), highlighted: true, reusingView: cellToHighlight.customView)
             delegate?.pickerView?(self, styleForLabel: cellToHighlight.titleLabel, highlighted: true)
         }
     }
