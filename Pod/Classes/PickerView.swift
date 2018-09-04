@@ -43,17 +43,17 @@ import UIKit
 }
 
 open class PickerView: UIView {
-    
+
     // MARK: Nested Types
-    
+
     fileprivate class SimplePickerCollectionViewCell: UICollectionViewCell {
         lazy var titleLabel: UILabel = {
             let titleLabel = UILabel(frame: CGRect(x: 0.0, y: 0.0, width: self.contentView.frame.width, height: self.contentView.frame.height))
             titleLabel.textAlignment = .center
-            
+
             return titleLabel
         }()
-        
+
         var customView: UIView? {
             willSet {
                 if customView != newValue {
@@ -77,15 +77,15 @@ open class PickerView: UIView {
             }
         }
     }
-    
+
     /**
         ScrollingStyle Enum.
-    
+
         - parameter Default: Show only the number of rows informed in data source.
-    
+
         - parameter Infinite: Loop through the data source offering a infinite scrolling experience to the user.
     */
-    
+
     @objc public enum ScrollingStyle: Int {
         case `default`, infinite
     }
@@ -113,27 +113,27 @@ open class PickerView: UIView {
 
     /**
         SelectionStyle Enum.
-    
+
         - parameter None: Don't uses any aditional view to highlight the selection, only the label style customization provided by delegate.
-    
+
         - parameter DefaultIndicator: Provide a simple selection indicator on the bottom of the highlighted row with full width and 2pt of height.
                                   The default color is its superview `tintColor` but you have free access to customize the DefaultIndicator through the `defaultSelectionIndicator` property.
-    
+
         - parameter Overlay: Provide a full width and height (the height you provided on delegate) view that overlay the highlighted row.
                          The default color is its superview `tintColor` and the alpha is set to 0.25, but you have free access to customize it through the `selectionOverlay` property.
-                         Tip: You can set the alpha to 1.0 and background color to .clearColor() and add your custom selection view to make it looks as you want 
+                         Tip: You can set the alpha to 1.0 and background color to .clearColor() and add your custom selection view to make it looks as you want
                          (don't forget to properly add the constraints related to `selectionOverlay` to keep your experience with any screen size).
-    
+
         - parameter Image: Provide a full width and height image view selection indicator (the height you provided on delegate) without any image.
                        You must have a selection indicator as a image and set it to the image view through the `selectionImageView` property.
     */
-    
+
     @objc public enum SelectionStyle: Int {
         case none, defaultIndicator, overlay, image
     }
-    
+
     // MARK: Properties
-    
+
     var enabled = true {
         didSet {
             if enabled {
@@ -143,12 +143,12 @@ open class PickerView: UIView {
             }
         }
     }
-    
+
     fileprivate var selectionOverlaySpanConstraint: NSLayoutConstraint!
     fileprivate var selectionImageSpanConstraint: NSLayoutConstraint!
     fileprivate var selectionIndicatorEdgeConstraint: NSLayoutConstraint!
     fileprivate var pickerCellBackgroundColor: UIColor?
-    
+
     var numberOfItemsByDataSource: Int {
         get {
             return dataSource?.pickerViewNumberOfItems(self) ?? 0
@@ -156,7 +156,7 @@ open class PickerView: UIView {
     }
 
     fileprivate let pickerViewCellIdentifier = "pickerViewCell"
-    
+
     open weak var dataSource: PickerViewDataSource?
     open weak var delegate: PickerViewDelegate? {
         didSet {
@@ -169,40 +169,40 @@ open class PickerView: UIView {
             updateInsets()
         }
     }
-    
+
     open lazy var defaultSelectionIndicator: UIView = {
         let selectionIndicator = UIView()
         selectionIndicator.backgroundColor = self.tintColor
         selectionIndicator.alpha = 0.0
-        
+
         return selectionIndicator
     }()
-    
+
     open lazy var selectionOverlay: UIView = {
         let selectionOverlay = UIView()
         selectionOverlay.backgroundColor = self.tintColor
         selectionOverlay.alpha = 0.0
-        
+
         return selectionOverlay
     }()
-    
+
     open lazy var selectionImageView: UIImageView = {
         let selectionImageView = UIImageView()
         selectionImageView.alpha = 0.0
-        
+
         return selectionImageView
     }()
-    
+
     lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.minimumLineSpacing = 0
         layout.minimumInteritemSpacing = 0
         layout.sectionInset = .zero
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        
+
         return collectionView
     }()
-    
+
     fileprivate var infinityItemsMultiplier: Int = 1
     open var currentSelectedItem: Int!
     open var currentSelectedIndex: Int {
@@ -210,7 +210,7 @@ open class PickerView: UIView {
             return indexForItem(currentSelectedItem)
         }
     }
-    
+
     fileprivate var firstTimeOrientationChanged = true
     fileprivate var orientationChanged = false
 
@@ -225,7 +225,7 @@ open class PickerView: UIView {
             trackMovementChanges()
         }
     }
-    
+
     fileprivate var setupHasBeenDone = false
 
     open var scrollingStyle = ScrollingStyle.default {
@@ -246,7 +246,7 @@ open class PickerView: UIView {
             }
         }
     }
-    
+
     open var selectionStyle = SelectionStyle.none {
         didSet {
             switch selectionStyle {
@@ -269,22 +269,22 @@ open class PickerView: UIView {
             }
         }
     }
-    
+
     // MARK: Initialization
-    
+
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
-    
+
     override public init(frame: CGRect) {
         super.init(frame: frame)
     }
-    
+
     // MARK: Subviews Setup
-    
+
     fileprivate func setup() {
         infinityItemsMultiplier = generateInfinityItemsMultiplier()
-        
+
         // Setup subviews constraints and apperance
         translatesAutoresizingMaskIntoConstraints = false
         setupCollectionView()
@@ -297,8 +297,8 @@ open class PickerView: UIView {
         self.collectionView.dataSource = self
 
         self.collectionView.reloadData()
-        
-        // This needs to be done after a delay - I am guessing it basically needs to be called once 
+
+        // This needs to be done after a delay - I am guessing it basically needs to be called once
         // the view is already displaying
         DispatchQueue.main.asyncAfter(deadline: .now()) {
             // Some UI Adjustments we need to do after setting UICollectionView data source & delegate.
@@ -306,7 +306,7 @@ open class PickerView: UIView {
             self.adjustSelectionOverlayHeightConstraint()
         }
     }
-    
+
     fileprivate func setupCollectionView() {
         collectionView.backgroundColor = .clear
         collectionView.allowsSelection = true
@@ -317,32 +317,32 @@ open class PickerView: UIView {
         collectionView.register(SimplePickerCollectionViewCell.classForCoder(), forCellWithReuseIdentifier: self.pickerViewCellIdentifier)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(collectionView)
-        
+
         let collectionViewH = NSLayoutConstraint(item: collectionView, attribute: .height, relatedBy: .equal, toItem: self,
                                                 attribute: .height, multiplier: 1, constant: 0)
         addConstraint(collectionViewH)
-        
+
         let collectionViewW = NSLayoutConstraint(item: collectionView, attribute: .width, relatedBy: .equal, toItem: self,
                                                 attribute: .width, multiplier: 1, constant: 0)
         addConstraint(collectionViewW)
-        
+
         let collectionViewL = NSLayoutConstraint(item: collectionView, attribute: .leading, relatedBy: .equal, toItem: self,
                                                 attribute: .leading, multiplier: 1, constant: 0)
         addConstraint(collectionViewL)
-        
+
         let collectionViewTop = NSLayoutConstraint(item: collectionView, attribute: .top, relatedBy: .equal, toItem: self,
                                                 attribute: .top, multiplier: 1, constant: 0)
         addConstraint(collectionViewTop)
-        
+
         let collectionViewBottom = NSLayoutConstraint(item: collectionView, attribute: .bottom, relatedBy: .equal, toItem: self,
                                                     attribute: .bottom, multiplier: 1, constant: 0)
         addConstraint(collectionViewBottom)
-        
+
         let collectionViewT = NSLayoutConstraint(item: collectionView, attribute: .trailing, relatedBy: .equal, toItem: self,
                                                 attribute: .trailing, multiplier: 1, constant: 0)
         addConstraint(collectionViewT)
     }
-    
+
     fileprivate func setupSelectionOverlay() {
         selectionOverlay.isUserInteractionEnabled = false
         selectionOverlay.translatesAutoresizingMaskIntoConstraints = false
@@ -385,7 +385,7 @@ open class PickerView: UIView {
         let selectionImageX = NSLayoutConstraint(item: selectionImageView, attribute: .centerX, relatedBy: .equal, toItem: self,
                                                     attribute: .centerX, multiplier: 1, constant: 0)
         addConstraint(selectionImageX)
-        
+
         let selectionImageY = NSLayoutConstraint(item: selectionImageView, attribute: .centerY, relatedBy: .equal, toItem: self,
                                                     attribute: .centerY, multiplier: 1, constant: 0)
         addConstraint(selectionImageY)
@@ -412,7 +412,7 @@ open class PickerView: UIView {
         selectionIndicatorEdgeConstraint = NSLayoutConstraint(item: defaultSelectionIndicator, attribute: edgeAttribute, relatedBy: .equal,
                                                               toItem: self, attribute: spanCenterAttribute, multiplier: 1, constant: itemSpan / 2)
         addConstraint(selectionIndicatorEdgeConstraint)
-        
+
         let selectionIndicatorC = NSLayoutConstraint(item: defaultSelectionIndicator, attribute: lateralCenterAttribute, relatedBy: .equal,
                                                      toItem: self, attribute: lateralCenterAttribute, multiplier: 1, constant: 0)
         addConstraint(selectionIndicatorC)
@@ -427,12 +427,12 @@ open class PickerView: UIView {
     }
 
     // MARK: Infinite Scrolling Helpers
-    
+
     fileprivate func generateInfinityItemsMultiplier() -> Int {
         if scrollingStyle == .default {
             return 1
         }
-    
+
         if numberOfItemsByDataSource > 100 {
             return 100
         } else if numberOfItemsByDataSource < 100 && numberOfItemsByDataSource > 50 {
@@ -443,12 +443,12 @@ open class PickerView: UIView {
             return 800
         }
     }
-    
+
     // MARK: Life Cycle
-    
+
     open override func willMove(toWindow newWindow: UIWindow?) {
         super.willMove(toWindow: newWindow)
-        
+
         if let _ = newWindow {
             NotificationCenter.default.addObserver(self, selector: #selector(PickerView.adjustCurrentSelectedAfterOrientationChanges),
                                                             name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
@@ -456,16 +456,16 @@ open class PickerView: UIView {
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
         }
     }
-    
+
     override open func layoutSubviews() {
         super.layoutSubviews()
-        
+
         if !setupHasBeenDone {
             setup()
             setupHasBeenDone = true
         }
     }
-    
+
     fileprivate func adjustSelectionOverlayHeightConstraint() {
         if selectionOverlaySpanConstraint.constant != itemSpan || selectionImageSpanConstraint.constant != itemSpan || selectionIndicatorEdgeConstraint.constant != (itemSpan / 2) {
             selectionOverlaySpanConstraint.constant = itemSpan
@@ -478,7 +478,7 @@ open class PickerView: UIView {
     @objc func adjustCurrentSelectedAfterOrientationChanges() {
         setNeedsLayout()
         layoutIfNeeded()
-        
+
         // Configure the PickerView to select the middle row when the orientation changes during scroll
         if isScrolling {
             let middleItem = Int(ceil(Float(numberOfItemsByDataSource) / 2.0))
@@ -487,38 +487,38 @@ open class PickerView: UIView {
             let itemToSelect = currentSelectedItem != nil ? currentSelectedItem : Int(ceil(Float(numberOfItemsByDataSource) / 2.0))
             selectedNearbyToMiddleItem(itemToSelect!)
         }
-        
+
         if firstTimeOrientationChanged {
             firstTimeOrientationChanged = false
             return
         }
-        
+
         if !isScrolling {
             return
         }
-        
+
         orientationChanged = true
     }
-    
+
     fileprivate func indexForItem(_ item: Int) -> Int {
         return item % (numberOfItemsByDataSource > 0 ? numberOfItemsByDataSource : 1)
     }
-    
+
     // MARK: - Actions
-    
+
     /**
         Selects the nearby to middle row that matches with the provided index.
-    
+
         - parameter row: A valid index provided by Data Source.
     */
     fileprivate func selectedNearbyToMiddleItem(_ item: Int) {
-        currentSelectedItem = item
+        currentSelectedItem = item % numberOfItemsByDataSource
         collectionView.reloadData()
-        
+
         if numberOfItemsByDataSource > 0 && collectionView.numberOfItems(inSection: 0) > 0 {
             let indexOfSelectedItem = visibleIndexOfSelectedItem()
             setContentOffset(CGFloat(indexOfSelectedItem) * itemSpan - endCapSpan, animated: false)
-            
+
             delegate?.pickerView?(self, didSelectItem: currentSelectedItem, index: currentSelectedIndex)
         }
     }
@@ -553,14 +553,14 @@ open class PickerView: UIView {
 
     /**
         Selects literally the row with index that the user tapped.
-    
+
         - parameter row: The row index that the user tapped, i.e. the Data Source index times the `infinityItemsMultiplier`.
     */
     fileprivate func selectTappedItem(_ item: Int) {
         delegate?.pickerView?(self, didTapItem: item, index: indexForItem(item))
         selectItem(item, animated: true)
     }
-    
+
     /**
         Configure the first row selection: If some pre-selected row was set, we select it, else we select the nearby to middle at all.
     */
@@ -568,20 +568,20 @@ open class PickerView: UIView {
         let itemToSelect = currentSelectedItem != nil ? currentSelectedItem : Int(ceil(Float(numberOfItemsByDataSource) / 2.0))
         selectedNearbyToMiddleItem(itemToSelect!)
     }
-    
+
     fileprivate func turnPickerViewOn() {
         collectionView.isScrollEnabled = true
     }
-    
+
     fileprivate func turnPickerViewOff() {
         collectionView.isScrollEnabled = false
     }
-    
+
     /**
-        This is an private helper that we use to reach the visible index of the current selected row. 
+        This is an private helper that we use to reach the visible index of the current selected row.
         Because of we multiply the rows several times to create an Infinite Scrolling experience, the index of a visible selected row may
         not be the same as the index provided on Data Source.
-    
+
         - returns: The visible index of current selected row.
     */
     fileprivate func visibleIndexOfSelectedItem() -> Int {
@@ -597,22 +597,22 @@ open class PickerView: UIView {
             let middleItem = Int(ceil(Float(numberOfItemsByDataSource) / 2.0))
             indexForSelectedItem = middleIndex - (numberOfItemsByDataSource - middleItem)
         }
-        
+
         return indexForSelectedItem
     }
-    
+
     open func selectItem(_ item : Int, animated: Bool) {
-        
+
         var finalItem = item;
-        
+
         if (scrollingStyle == .infinite && item < numberOfItemsByDataSource) {
             let selectedItem = currentSelectedItem ?? Int(ceil(Float(numberOfItemsByDataSource) / 2.0))
             let diff = (item % numberOfItemsByDataSource) - (selectedItem % numberOfItemsByDataSource)
             finalItem = selectedItem + diff
         }
-        
-        currentSelectedItem = finalItem
-        
+
+        currentSelectedItem = finalItem % numberOfItemsByDataSource
+
         delegate?.pickerView?(self, didSelectItem: currentSelectedItem, index: currentSelectedIndex)
 
         setContentOffset(CGFloat(finalItem) * itemSpan - endCapSpan, animated: animated)
@@ -636,7 +636,7 @@ open class PickerView: UIView {
 }
 
 extension PickerView: UICollectionViewDataSource {
-    
+
     // MARK: UICollectionViewDataSource
 
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -709,7 +709,7 @@ fileprivate extension CGSize {
 }
 
 extension PickerView: UICollectionViewDelegate {
-    
+
     // MARK: UITableViewDelegate
 
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -726,17 +726,17 @@ extension PickerView: UICollectionViewDelegateFlowLayout {
 }
 
 extension PickerView: UIScrollViewDelegate {
-    
+
     // MARK: UIScrollViewDelegate
-    
+
     public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         isScrolling = true
     }
-    
+
     public func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         let partialItem = Float((targetContentOffset.pointee.offset(forDirection: scrollingDirection) + endCapSpan) / itemSpan) // Get the estimative of what row will be the selected when the scroll animation ends.
         var roundedItem = Int(lroundf(partialItem)) // Round the estimative to a row
-        
+
         if roundedItem < 0 {
             roundedItem = 0
         }
@@ -744,21 +744,21 @@ extension PickerView: UIScrollViewDelegate {
         targetContentOffset.pointee.setOffset(CGFloat(roundedItem) * itemSpan - endCapSpan, forDirection: scrollingDirection) // Set the targetContentOffset (where the scrolling position will be when the animation ends) to a rounded value.
 
         // Update the currentSelectedItem and notify the delegate that we have a new selected row.
-        currentSelectedItem = roundedItem
-        
+        currentSelectedItem = roundedItem % numberOfItemsByDataSource
+
         delegate?.pickerView?(self, didSelectItem: currentSelectedItem, index: currentSelectedIndex)
     }
-    
+
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         // When the orientation changes during the scroll, is required to reset the picker to select the nearby to middle row.
         if orientationChanged {
             selectedNearbyToMiddleItem(currentSelectedItem)
             orientationChanged = false
         }
-        
+
         isScrolling = false
     }
-    
+
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let partialItem = Float((scrollView.contentOffset.offset(forDirection: scrollingDirection) + endCapSpan) / itemSpan)
         let roundedItem = Int(lroundf(partialItem))
